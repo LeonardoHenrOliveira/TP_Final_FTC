@@ -1,0 +1,43 @@
+@AF
+Q: q0e q1e q2e q3e q4e q5e q6e q0o q1o q2o q3o q4o q5o q6o
+I: q0e
+F: q0e
+q0e -> q0o | 0
+q0e -> q1o | 1
+q1e -> q2o | 0
+q1e -> q3o | 1
+q2e -> q4o | 0
+q2e -> q5o | 1
+q3e -> q6o | 0
+q3e -> q0o | 1
+q4e -> q1o | 0
+q4e -> q2o | 1
+q5e -> q3o | 0
+q5e -> q4o | 1
+q6e -> q5o | 0
+q6e -> q6o | 1
+q0o -> q0e | 0
+q0o -> q1e | 1
+q1o -> q2e | 0
+q1o -> q3e | 1
+q2o -> q4e | 0
+q2o -> q5e | 1
+q3o -> q6e | 0
+q3o -> q0e | 1
+q4o -> q1e | 0
+q4o -> q2e | 1
+q5o -> q3e | 0
+q5o -> q4e | 1
+q6o -> q5e | 0
+q6o -> q6e | 1
+---
+
+00
+111
+1110
+10101
+101010
+10
+11011
+10001100
+100011001
