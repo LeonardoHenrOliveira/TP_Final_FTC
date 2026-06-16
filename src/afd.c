@@ -28,11 +28,13 @@ void adicionar_final(AFD* afd, const char* estado) {
 }
 
 void adicionar_transicao(AFD* afd, const char* origem, char simbolo, const char* destino) {
-    if (afd->num_transicoes < MAX_TRANSICOES) {
+    if (afd->num_transicoes < MAX_TRANSICOES && simbolo_no_dicionario(afd, simbolo)) {
         strcpy(afd->transicoes[afd->num_transicoes].origem, origem);
         afd->transicoes[afd->num_transicoes].simbolo = simbolo;
         strcpy(afd->transicoes[afd->num_transicoes].destino, destino);
         afd->num_transicoes++;
+    }else if(!simbolo_no_dicionario(afd, simbolo)) {
+        fprintf(stderr, "Simbolo '%c' nao pertence ao dicionario.\n", simbolo);
     }
 }
 
@@ -42,6 +44,9 @@ bool processar_palavra(AFD* afd, const char* palavra) {
 
     for (int i = 0; palavra[i] != '\0'; i++) {
         char simbolo = palavra[i];
+        if (!simbolo_no_dicionario(afd, simbolo)) {
+            return false; 
+        }
         bool encontrou_transicao = false;
 
         for (int j = 0; j < afd->num_transicoes; j++) {
@@ -65,5 +70,21 @@ bool processar_palavra(AFD* afd, const char* palavra) {
         }
     }
 
+    return false;
+}
+
+void definir_dicionario(AFD* afd, const char* dicionario) {
+
+    strncpy(afd->dicionario, dicionario, MAX_DICIONARIO - 1);
+    afd->dicionario[MAX_DICIONARIO - 1] = '\0';
+
+}
+
+static bool simbolo_no_dicionario(const AFD* afd, char simbolo) {
+    for (int i = 0; afd->dicionario[i] != '\0'; i++) {
+        if (afd->dicionario[i] == simbolo) {
+            return true;
+        }
+    }
     return false;
 }

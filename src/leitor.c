@@ -24,6 +24,19 @@ bool ler_configuracao(FILE* arquivo, AFD* afd) {
         token = strtok(NULL, " ");
     }
 
+    //lendo S:
+    if (fgets(linha, MAX_LINHA, arquivo) == NULL) return false;
+    remover_quebra_linha(linha);
+
+    char* dicionario = linha;
+    if(strncmp(linha, "S: ", 3) == 0) {
+        dicionario = linha + 3;
+        while (*dicionario == ' ' || *dicionario == '\t') {
+            dicionario++; 
+        }
+    }
+    definir_dicionario(afd, dicionario);
+
     // Lendo I:
     if (fgets(linha, MAX_LINHA, arquivo) == NULL) return false;
     remover_quebra_linha(linha);

@@ -7,6 +7,7 @@
 #define MAX_FINAIS 100
 #define MAX_TRANSICOES 500
 #define TAM_NOME 8 
+#define MAX_DICIONARIO 30
 
 typedef struct {
     char origem[TAM_NOME];
@@ -22,6 +23,8 @@ typedef struct {
 
     char estados_finais[MAX_FINAIS][TAM_NOME];
     int num_finais;
+
+    char dicionario[MAX_DICIONARIO];
     
     Transicao transicoes[MAX_TRANSICOES];
     int num_transicoes;
@@ -33,5 +36,7 @@ void definir_inicial(AFD* afd, const char* estado);
 void adicionar_final(AFD* afd, const char* estado);
 void adicionar_transicao(AFD* afd, const char* origem, char simbolo, const char* destino);
 bool processar_palavra(AFD* afd, const char* palavra);
+void definir_dicionario(AFD* afd, const char* dicionario);
+static bool simbolo_no_dicionario(const AFD* afd, char simbolo);
 
 #endif
