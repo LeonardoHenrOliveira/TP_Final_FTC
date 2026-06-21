@@ -3,16 +3,14 @@
 #include <string.h>
 #include "leitor.h"
 #include "afd.h"
+#include "mt.h"
 
 int main() {
     char nome_arquivo[100];
     char caminho_arquivo[100];
-
-    printf("============================================\n");
-    printf("Digite o nome do arquivo de teste: ");
-    
+    printf("Digite o nome do arquivo de teste (ex: teste1.txt): ");
     if (scanf("%99s", nome_arquivo) != 1) {
-        printf("Erro ao ler o nome do arquivo.\n");
+        fprintf(stderr, "Erro ao ler o nome do arquivo.\n");
         return 1;
     }
 
@@ -21,7 +19,7 @@ int main() {
     FILE* arquivo = fopen(caminho_arquivo, "r");
     
     if (arquivo == NULL) {
-        printf("Erro: Nao foi possivel abrir o arquivo no caminho '%s'.\n", caminho_arquivo);
+        fprintf(stderr, "Erro: Nao foi possivel abrir o arquivo.\n");
         return 1;
     }
 
@@ -33,29 +31,40 @@ int main() {
         primeira_linha[strcspn(primeira_linha, "\r")] = '\0';
         
         if (strcmp(primeira_linha, "@AF") == 0) {
-            printf("Tipo detectado: Automato Finito (@AF)\n");
-            
             AFD meu_afd;
             inicializar_afd(&meu_afd);
 
             if (ler_configuracao(arquivo, &meu_afd)) {
                 ler_casos_teste(arquivo, &meu_afd);
             } else {
-                printf("Erro de formatacao ao ler a configuracao do AF.\n");
+                fprintf(stderr, "Erro de formatacao do AF.\n");
             }
             
         } else if (strcmp(primeira_linha, "@MT") == 0) {
-            printf("Tipo detectado: Maquina de Turing (@MT)\n");
+            MaquinaTuring minha_mt;
+            inicializar_mt(&minha_mt);
+
+            if (ler_configuracao_mt(arquivo, &minha_mt)) {
+                ler_casos_teste_mt(arquivo, &minha_mt, false);
+            } else {
+                fprintf(stderr, "Erro de formatacao da MT.\n");
+            }
             
+        } else if (strcmp(primeira_linha, "@ALL") == 0) {
+            MaquinaTuring minha_all;
+            inicializar_mt(&minha_all);
+
+            if (ler_configuracao_mt(arquivo, &minha_all)) {
+                ler_casos_teste_mt(arquivo, &minha_all, true);
+            } else {
+                fprintf(stderr, "Erro de formatacao da MT.\n");
+            }
         } else if (strcmp(primeira_linha, "@AP") == 0) {
-            printf("Tipo detectado: Automato de Pilha (@AP)\n");
-            
+            // Opcional: Implementar no futuro ou apenas ignorar
         } else {
-            printf("Erro: Tipo de automato desconhecido ou tag faltando (%s).\n", primeira_linha);
+            fprintf(stderr, "Erro: Tipo de automato desconhecido.\n");
         }
         
-    } else {
-        printf("Erro: Arquivo vazio.\n");
     }
 
     fclose(arquivo);
