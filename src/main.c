@@ -4,7 +4,7 @@
 #include "leitor.h"
 #include "afd.h"
 #include "mt.h"
-
+#include "afn.h"
 int main() {
     char nome_arquivo[100];
     char caminho_arquivo[100];
@@ -59,8 +59,15 @@ int main() {
             } else {
                 fprintf(stderr, "Erro de formatacao da MT.\n");
             }
-        } else if (strcmp(primeira_linha, "@AP") == 0) {
-            // Opcional: Implementar no futuro ou apenas ignorar
+        } else if (strcmp(primeira_linha, "@AFN") == 0) {
+            AFN meu_afn;
+            inicializar_afn(&meu_afn);
+
+            if (ler_configuracao_afn(arquivo, &meu_afn)) {
+                ler_casos_teste_afn(arquivo, &meu_afn);
+            } else {
+                fprintf(stderr, "Erro de formatacao do AFN.\n");
+            }
         } else {
             fprintf(stderr, "Erro: Tipo de automato desconhecido.\n");
         }

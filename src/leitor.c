@@ -5,6 +5,7 @@
 #include "leitor.h"
 #include "afd.h"
 #include "mt.h"
+#include "afn.h"
 
 #define MAX_LINHA 256
 
@@ -80,6 +81,94 @@ bool ler_configuracao(FILE* arquivo, AFD* afd) {
     return true;
 }
 
+bool ler_configuracao_afn(FILE* arquivo, AFN* afn) {
+    char linha[MAX_LINHA];
+
+    // Lendo Q:
+    if (fgets(linha, MAX_LINHA, arquivo) == NULL) return false;
+    remover_quebra_linha(linha);
+    char* token = strtok(linha + 3, " "); 
+    while (token != NULL) {
+        adicionar_estado_afn(afn, token);
+        token = strtok(NULL, " ");
+    }
+
+    // Lendo S: (Alfabeto de entrada)
+    if (fgets(linha, MAX_LINHA, arquivo) == NULL) return false;
+    remover_quebra_linha(linha);
+
+    char* dicionario = linha;
+    if(strncmp(linha, "S: ", 3) == 0) {
+        dicionario = linha + 3;
+        while (*dicionario == ' ' || *dicionario == '\t') {
+            dicionario++; 
+        }
+        
+
+        if (strchr(dicionario, '\\') != NULL) {
+            fprintf(stderr, "Erro: O simbolo '\\' (lambda) nao pode estar no alfabeto de entrada.\n");
+            return false;
+        }
+    }
+    definir_dicionario_afn(afn, dicionario);
+    if (fgets(linha, MAX_LINHA, arquivo) == NULL) return false;
+    remover_quebra_linha(linha);
+    token = strtok(linha + 3, " ");
+    while (token != NULL) {
+        adicionar_inicial_afn(afn, token);
+        token = strtok(NULL, " ");
+    }
+
+    // Lendo F:
+    if (fgets(linha, MAX_LINHA, arquivo) == NULL) return false;
+    remover_quebra_linha(linha);
+    token = strtok(linha + 3, " ");
+    while (token != NULL) {
+        adicionar_final_afn(afn, token);
+        token = strtok(NULL, " ");
+    }
+
+    // Lendo transições
+    while (fgets(linha, MAX_LINHA, arquivo) != NULL) {
+        remover_quebra_linha(linha);
+
+        if (strcmp(linha, "---") == 0) {
+            break; 
+        }
+
+        char origem[8], destino[8], barra[2], seta[3];
+        int lidos = sscanf(linha, "%7s %2s %7s %1s", origem, seta, destino, barra);
+        
+        if (lidos == 4 && strcmp(seta, "->") == 0 && strcmp(barra, "|") == 0) {
+            char* ptr_simbolos = strchr(linha, '|');
+            if (ptr_simbolos != NULL) {
+                ptr_simbolos++;
+                char* token_simbolo = strtok(ptr_simbolos, " ");
+                while (token_simbolo != NULL) {
+                    adicionar_transicao_afn(afn, origem, token_simbolo[0], destino);
+                    token_simbolo = strtok(NULL, " ");
+                }
+            }
+        }
+    }
+    return true;
+}
+
+void ler_casos_teste_afn(FILE* arquivo, AFN* afn) {
+    char linha[MAX_LINHA];
+
+    while (fgets(linha, MAX_LINHA, arquivo) != NULL) {
+        remover_quebra_linha(linha);
+        
+        // Testa a palavra no AFN e imprime o resultado exigido
+        if (processar_palavra_afn(afn, linha)) {
+            printf("OK\n"); 
+        } else {
+            printf("X\n"); 
+        }
+    }
+}
+
 bool ler_configuracao_mt(FILE* arquivo, MaquinaTuring* mt) {
     char linha[MAX_LINHA];
 
@@ -91,49 +180,38 @@ bool ler_configuracao_mt(FILE* arquivo, MaquinaTuring* mt) {
         strcpy(mt->estados[mt->num_estados++], token);
         token = strtok(NULL, " ");
     }
-
-    // =======================================================
-    // BLOCO DE LEITURA FLEXÍVEL (S:, G: e I:)
-    // =======================================================
-    
     // Lê a próxima linha após o Q:
     if (fgets(linha, MAX_LINHA, arquivo) == NULL) return false;
     remover_quebra_linha(linha);
 
-    // Verifica se a linha atual é o S: (Alfabeto de entrada)
     if (strncmp(linha, "S:", 2) == 0) {
         // Pula o S: e lê a próxima linha
         if (fgets(linha, MAX_LINHA, arquivo) == NULL) return false;
         remover_quebra_linha(linha);
     }
 
-    // Verifica se a linha atual é o G: (Alfabeto da Fita)
     if (strncmp(linha, "G:", 2) == 0) {
-        if (strlen(linha) > 3) { // Garante que tem algo após o "G: "
+        if (strlen(linha) > 3) {
             char* alfabeto_fita = linha + 3;
             while (*alfabeto_fita == ' ' || *alfabeto_fita == '\t') {
                 alfabeto_fita++; 
             }
             strncpy(mt->alfabeto_fita, alfabeto_fita, sizeof(mt->alfabeto_fita) - 1);
         } else {
-            mt->alfabeto_fita[0] = '\0'; // Fita sem alfabeto restrito se a linha for só "G:"
+            mt->alfabeto_fita[0] = '\0';
         }
         
-        // Se leu o G:, a próxima linha obrigatoriamente deve ser o I:
         if (fgets(linha, MAX_LINHA, arquivo) == NULL) return false;
         remover_quebra_linha(linha);
     }
 
-    // Agora, a variável 'linha' com certeza contém o I: (Estado Inicial)
     if (strncmp(linha, "I:", 2) == 0) {
         char* inicio = strchr(linha, ':') + 1;
         while (*inicio == ' ' || *inicio == '\t') inicio++;
         sscanf(inicio, "%7s", mt->estado_inicial);
     } else {
-        // Se chegou aqui e não é o I:, o arquivo está mal formatado
         return false;
     }
-    // =======================================================
 
     // Lendo F:
     if (fgets(linha, MAX_LINHA, arquivo) == NULL) return false;
