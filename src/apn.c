@@ -46,12 +46,11 @@ void adicionar_transicao_apn(APN* apn, const char* origem, char entrada, char de
     }
 }
 
-// Structs for search state
 typedef struct Config {
     char estado_atual[TAM_NOME_APN];
     int indice;
     char pilha[MAX_PILHA_EXEC];
-    int top; // -1 para vazia
+    int top; 
     struct Config* next;
 } Config;
 
@@ -68,7 +67,7 @@ typedef struct HashNode {
     struct HashNode* next;
 } HashNode;
 
-// Hash function
+
 unsigned long hash_config(const VisitedConfig* c) {
     unsigned long hash = 5381;
     for (int i = 0; c->estado_atual[i] != '\0'; i++) hash = ((hash << 5) + hash) + c->estado_atual[i];
@@ -158,7 +157,6 @@ bool processar_palavra_apn(APN* apn, const char* palavra, bool exigir_estado_fin
         }
         mark_visited(visitados, &vc);
 
-        // Verifica aceitacao
         bool palavra_lida = (atual->indice == len_palavra);
         bool pilha_vazia = (atual->top == -1);
         bool estado_final_ok = !exigir_estado_final;

@@ -63,7 +63,6 @@ bool processar_palavra_apd(APD* apd, const char* palavra) {
         int transicao_idx = -1;
         bool consumiu = false;
 
-        // Try exact match with current input symbol
         if (simbolo_entrada != '\\') {
             for (int j = 0; j < apd->num_transicoes; j++) {
                 if (strcmp(estado_atual, apd->transicoes[j].origem) == 0 &&
@@ -76,7 +75,6 @@ bool processar_palavra_apd(APD* apd, const char* palavra) {
             }
         }
 
-        // Try epsilon transition if no exact match
         if (transicao_idx == -1) {
             for (int j = 0; j < apd->num_transicoes; j++) {
                 if (strcmp(estado_atual, apd->transicoes[j].origem) == 0 &&
@@ -89,7 +87,7 @@ bool processar_palavra_apd(APD* apd, const char* palavra) {
         }
 
         if (transicao_idx == -1) {
-            break; // No valid transition
+            break;
         }
 
         if (consumiu) {
@@ -100,11 +98,10 @@ bool processar_palavra_apd(APD* apd, const char* palavra) {
         const char* empilha = apd->transicoes[transicao_idx].empilha;
 
         if (simbolo_topo != '\\') {
-            top--; // desempilha
+            top--; 
         }
 
         if (strcmp(empilha, "\\") != 0) {
-            // Empilha the string in reverse so the first char becomes the new top
             int len_empilha = strlen(empilha);
             for (int j = len_empilha - 1; j >= 0; j--) {
                 top++;
@@ -116,8 +113,6 @@ bool processar_palavra_apd(APD* apd, const char* palavra) {
     if (i == len_palavra && top == -1) {
         bool estado_final_ok = false;
         
-        // Se a especificação não tiver estados finais (F: vazio), consideramos ok? 
-        // Vamos forçar a checagem se houver estados finais definidos.
         if (apd->num_finais == 0) {
             estado_final_ok = true; 
         } else {
