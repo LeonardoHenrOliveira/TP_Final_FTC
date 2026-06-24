@@ -68,6 +68,28 @@ int main() {
             } else {
                 fprintf(stderr, "Erro de formatacao do AFN.\n");
             }
+        } else if (strcmp(primeira_linha, "@APN") == 0 || strcmp(primeira_linha, "@AP") == 0) {
+            printf("Tipo detectado: Automato de Pilha Nao-Deterministico (%s)\n", primeira_linha);
+            
+            APN meu_apn;
+            inicializar_apn(&meu_apn);
+
+            if (ler_configuracao_apn(arquivo, &meu_apn)) {
+                ler_casos_teste_apn(arquivo, &meu_apn, true); // padrao python é true
+            } else {
+                fprintf(stderr, "Erro de formatacao do APN.\n");
+            }
+        } else if (strcmp(primeira_linha, "@APD") == 0) {
+            printf("Tipo detectado: Automato de Pilha Deterministico (@APD)\n");
+            
+            APD meu_apd;
+            inicializar_apd(&meu_apd);
+
+            if (ler_configuracao_apd(arquivo, &meu_apd)) {
+                ler_casos_teste_apd(arquivo, &meu_apd);
+            } else {
+                fprintf(stderr, "Erro de formatacao do APD.\n");
+            }
         } else {
             fprintf(stderr, "Erro: Tipo de automato desconhecido.\n");
         }

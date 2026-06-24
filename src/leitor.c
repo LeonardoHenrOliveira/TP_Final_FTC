@@ -288,3 +288,201 @@ void ler_casos_teste(FILE* arquivo, AFD* afd) {
         }
     }
 }
+
+bool ler_configuracao_apn(FILE* arquivo, APN* apn) {
+    char linha[MAX_LINHA];
+
+    // Lendo Q:
+    if (fgets(linha, MAX_LINHA, arquivo) == NULL) return false;
+    remover_quebra_linha(linha);
+    char* token = strtok(linha + 3, " "); 
+    while (token != NULL) {
+        adicionar_estado_apn(apn, token);
+        token = strtok(NULL, " ");
+    }
+
+    // Lendo G:
+    if (fgets(linha, MAX_LINHA, arquivo) == NULL) return false;
+    remover_quebra_linha(linha);
+    char* alfabeto = linha;
+    if(strncmp(linha, "G: ", 3) == 0) {
+        alfabeto = linha + 3;
+        while (*alfabeto == ' ' || *alfabeto == '\t') {
+            alfabeto++; 
+        }
+    }
+    definir_alfabeto_pilha_apn(apn, alfabeto);
+
+    // Lendo I:
+    if (fgets(linha, MAX_LINHA, arquivo) == NULL) return false;
+    remover_quebra_linha(linha);
+    char estado_ini[8];
+    sscanf(linha, "I: %7s", estado_ini);
+    definir_inicial_apn(apn, estado_ini);
+
+    // Lendo F:
+    if (fgets(linha, MAX_LINHA, arquivo) == NULL) return false;
+    remover_quebra_linha(linha);
+    token = strtok(linha + 3, " ");
+    while (token != NULL) {
+        adicionar_final_apn(apn, token);
+        token = strtok(NULL, " ");
+    }
+
+    // Lendo transições
+    while (fgets(linha, MAX_LINHA, arquivo) != NULL) {
+        remover_quebra_linha(linha);
+
+        if (strcmp(linha, "---") == 0) {
+            break; 
+        }
+
+        char origem[8], destino[8], barra[2], seta[3];
+        int lidos = sscanf(linha, "%7s %2s %7s %1s", origem, seta, destino, barra);
+        
+        if (lidos == 4 && strcmp(seta, "->") == 0 && strcmp(barra, "|") == 0) {
+            char* ptr_operacoes = strchr(linha, '|');
+            if (ptr_operacoes != NULL) {
+                ptr_operacoes++;
+                char* token_op = strtok(ptr_operacoes, " ");
+                while (token_op != NULL) {
+                    // op is something like a,A/AA
+                    char entrada = '\\';
+                    char desempilha = '\\';
+                    char empilha[MAX_EMPILHA] = "\\";
+                    
+                    char* virgula = strchr(token_op, ',');
+                    if (virgula != NULL) {
+                        *virgula = '\0';
+                        if (strlen(token_op) > 0) entrada = token_op[0];
+                        
+                        char* barra_op = strchr(virgula + 1, '/');
+                        if (barra_op != NULL) {
+                            *barra_op = '\0';
+                            if (strlen(virgula + 1) > 0) desempilha = *(virgula + 1);
+                            
+                            strcpy(empilha, barra_op + 1);
+                        }
+                    }
+                    
+                    adicionar_transicao_apn(apn, origem, entrada, desempilha, destino, empilha);
+                    token_op = strtok(NULL, " ");
+                }
+            }
+        }
+    }
+    return true;
+}
+
+void ler_casos_teste_apn(FILE* arquivo, APN* apn, bool exigir_estado_final) {
+    char linha[MAX_LINHA];
+
+    while (fgets(linha, MAX_LINHA, arquivo) != NULL) {
+        remover_quebra_linha(linha);
+        
+        if (processar_palavra_apn(apn, linha, exigir_estado_final)) {
+            printf("OK\n"); 
+        } else {
+            printf("X\n"); 
+        }
+    }
+}
+
+bool ler_configuracao_apd(FILE* arquivo, APD* apd) {
+    char linha[MAX_LINHA];
+
+    // Lendo Q:
+    if (fgets(linha, MAX_LINHA, arquivo) == NULL) return false;
+    remover_quebra_linha(linha);
+    char* token = strtok(linha + 3, " "); 
+    while (token != NULL) {
+        adicionar_estado_apd(apd, token);
+        token = strtok(NULL, " ");
+    }
+
+    // Lendo G:
+    if (fgets(linha, MAX_LINHA, arquivo) == NULL) return false;
+    remover_quebra_linha(linha);
+    char* alfabeto = linha;
+    if(strncmp(linha, "G: ", 3) == 0) {
+        alfabeto = linha + 3;
+        while (*alfabeto == ' ' || *alfabeto == '\t') {
+            alfabeto++; 
+        }
+    }
+    definir_alfabeto_pilha_apd(apd, alfabeto);
+
+    // Lendo I:
+    if (fgets(linha, MAX_LINHA, arquivo) == NULL) return false;
+    remover_quebra_linha(linha);
+    char estado_ini[8];
+    sscanf(linha, "I: %7s", estado_ini);
+    definir_inicial_apd(apd, estado_ini);
+
+    // Lendo F:
+    if (fgets(linha, MAX_LINHA, arquivo) == NULL) return false;
+    remover_quebra_linha(linha);
+    token = strtok(linha + 3, " ");
+    while (token != NULL) {
+        adicionar_final_apd(apd, token);
+        token = strtok(NULL, " ");
+    }
+
+    // Lendo transições
+    while (fgets(linha, MAX_LINHA, arquivo) != NULL) {
+        remover_quebra_linha(linha);
+
+        if (strcmp(linha, "---") == 0) {
+            break; 
+        }
+
+        char origem[8], destino[8], barra[2], seta[3];
+        int lidos = sscanf(linha, "%7s %2s %7s %1s", origem, seta, destino, barra);
+        
+        if (lidos == 4 && strcmp(seta, "->") == 0 && strcmp(barra, "|") == 0) {
+            char* ptr_operacoes = strchr(linha, '|');
+            if (ptr_operacoes != NULL) {
+                ptr_operacoes++;
+                char* token_op = strtok(ptr_operacoes, " ");
+                while (token_op != NULL) {
+                    // op is something like a,A/AA
+                    char entrada = '\\';
+                    char desempilha = '\\';
+                    char empilha[MAX_EMPILHA] = "\\";
+                    
+                    char* virgula = strchr(token_op, ',');
+                    if (virgula != NULL) {
+                        *virgula = '\0';
+                        if (strlen(token_op) > 0) entrada = token_op[0];
+                        
+                        char* barra_op = strchr(virgula + 1, '/');
+                        if (barra_op != NULL) {
+                            *barra_op = '\0';
+                            if (strlen(virgula + 1) > 0) desempilha = *(virgula + 1);
+                            
+                            strcpy(empilha, barra_op + 1);
+                        }
+                    }
+                    
+                    adicionar_transicao_apd(apd, origem, entrada, desempilha, destino, empilha);
+                    token_op = strtok(NULL, " ");
+                }
+            }
+        }
+    }
+    return true;
+}
+
+void ler_casos_teste_apd(FILE* arquivo, APD* apd) {
+    char linha[MAX_LINHA];
+
+    while (fgets(linha, MAX_LINHA, arquivo) != NULL) {
+        remover_quebra_linha(linha);
+        
+        if (processar_palavra_apd(apd, linha)) {
+            printf("OK\n"); 
+        } else {
+            printf("X\n"); 
+        }
+    }
+}
